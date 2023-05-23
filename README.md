@@ -50,7 +50,6 @@ defmodule MyAppWeb.AVKitLive do
   @impl true
   def render(%{platform_id: :swiftui} = assigns) do
     ~Z"""
-    ~Z"""
     <VStack>
       <VideoPlayer url="http://127.0.0.1:4000/videos/sample.mp4" />
     </VStack>
