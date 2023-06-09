@@ -8,6 +8,11 @@
 import AVFoundation
 import AVKit
 
+/// Helper functions for converting LiveViewNative compatible types to AVKit types
+/// and vice versa.
+#if swift(>=5.8)
+@_documentation(visibility: public)
+#endif
 class AVKitHelpers {
     static func floatToStride(float: Float64) -> RunLoop.SchedulerTimeType.Stride {
         return RunLoop.SchedulerTimeType.Stride(float)
