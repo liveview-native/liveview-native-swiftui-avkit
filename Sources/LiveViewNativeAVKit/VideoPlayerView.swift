@@ -157,21 +157,16 @@ struct VideoPlayerView<R: RootRegistry>: View {
     }
 
     func performSeek(params: Dictionary<String, Any>) {
-        switch (params["playback_time"]) {
-        case .some(let value):
-            let castValue = value as! Float64
-            let to = AVKitHelpers.floatToCMTime(float: castValue)
-            let toleranceBefore = AVKitHelpers.floatToCMTime(float: 0.0)
-            let toleranceAfter = AVKitHelpers.floatToCMTime(float: 0.0)
+        guard let value = params["playback_time"] as? Float64 else { return }
+        
+        let to = AVKitHelpers.floatToCMTime(float: value)
+        let toleranceBefore = AVKitHelpers.floatToCMTime(float: 0.0)
+        let toleranceAfter = AVKitHelpers.floatToCMTime(float: 0.0)
 
-            observer.player.seek(to: to, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
+        observer.player.seek(to: to, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
 
-            // Always update playback time when seeking.
-            playbackTime = CMTimeGetSeconds(observer.player.currentTime())
-
-        case .none:
-            return
-        }
+        // Always update playback time when seeking.
+        playbackTime = CMTimeGetSeconds(observer.player.currentTime())
     }
 
     func syncTimeControlStatus(status: AVPlayer.TimeControlStatus) {
