@@ -141,7 +141,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
             .onReceive(observer.player.publisher(for: \.isMuted)) { value in isMuted = value }
             .onReceive(observer.player.publisher(for: \.timeControlStatus)) { value in syncTimeControlStatus(status: value) }
             /// This is a workaround for SwiftUI not supporting `onReceive` for `AVPlayer`'s `currentTime` property.
-            .onReceive(observer.assigns.$playbackTime.throttle(for: .init(playbackTimeUpdateInterval), scheduler: RunLoop.current, latest: true)) { value in playbackTime = value }
+            .onReceive(observer.$playbackTime.throttle(for: .init(playbackTimeUpdateInterval), scheduler: RunLoop.current, latest: true)) { value in playbackTime = value }
     }
 
     func performPlay(params: Dictionary<String, Any>) {
@@ -198,18 +198,10 @@ struct VideoPlayerView<R: RootRegistry>: View {
 @_documentation(visibility: public)
 #endif
 class VideoPlayerObserver<R: RootRegistry>: ObservableObject {
-    @Published var assigns: Assigns = Assigns()
+    @Published var playbackTime: Float64 = 0.0
 
     var player: AVPlayer
     var interval: CMTime
-
-    class Assigns: ObservableObject {
-        @Published var playbackTime: Float64
-
-        init() {
-            self.playbackTime = 0.0
-        }
-    }
 
     init(interval: CMTime) {
         self.player = AVPlayer()
@@ -217,7 +209,7 @@ class VideoPlayerObserver<R: RootRegistry>: ObservableObject {
 
         // Add time observer. Invoke closure on the main queue.
         player.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
-            [weak self] time in self?.assigns.playbackTime = CMTimeGetSeconds(time)
+            [weak self] time in self?.playbackTime = CMTimeGetSeconds(time)
         }
     }
 }
