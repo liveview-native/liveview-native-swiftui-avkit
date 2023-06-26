@@ -103,27 +103,23 @@ struct VideoPlayerView<R: RootRegistry>: View {
     #if swift(>=5.8)
     @_documentation(visibility: public)
     #endif
-    var autoplay: Bool = false
+    @Attribute("autoplay") private var autoplay: Bool
 
     /// The URL of the video to play.
     #if swift(>=5.8)
     @_documentation(visibility: public)
     #endif
-    var url: URL
+    @Attribute("url", transform: {
+        guard let value = $0?.value else { throw AttributeDecodingError.missingAttribute(Self.self) }
+
+        return URL(string: value)!
+    }) private var url: URL
 
     @LiveContext<R> private var context
     @ObservedElement private var element: ElementNode
     @StateObject private var observer: VideoPlayerObserver<R>
 
     init(element: ElementNode) {
-        if let value = element.attributeValue(for: "autoplay") {
-            self.autoplay = Bool(value)!
-        }
-        if let value = element.attributeValue(for: "url") {
-            self.url = URL(string: value)!
-        } else {
-            self.url = URL(string: "")!
-        }
         let interval = CMTime(seconds: 0.01, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
         _observer = StateObject(wrappedValue: VideoPlayerObserver(interval: interval))
