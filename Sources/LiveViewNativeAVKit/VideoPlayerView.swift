@@ -14,36 +14,36 @@ import CoreMedia
 /// A native video player view. It can be rendered in a LiveViewNative app using the `VideoPlayer` element.
 /// 
 /// ```elixir
-///   defmodule MyApp.VideoPlayerLive do
-///     use Phoenix.LiveView
-///     use LiveViewNative.LiveView
-///   
-///     native_binding :is_muted, Atom, false
-///     native_binding :time_control_status, String, ""
-///     native_binding :playback_time, Float, 5.0
-///     native_binding :playback_time_update_interval, Float, 0.05
-///   
-///     @impl true
-///     def render(%{platform_id: :swiftui} = assigns) do
-///       ~SWIFTUI"""
-///       <VStack id="webview-example">
-///         <VStack>
-///           <%= @playback_time %>
-///         </VStack>
-///         <VideoPlayer
-///           autoplay="true"
-///           is-muted="is_muted"
-///           playback-time="playback_time"
-///           playback-time-update-interval="playback_time_update_interval"
-///           on-play="handle_play"
-///           on-pause="handle_pause"
-///           time-control-status="time_control_status"
-///           url="http://192.168.1.143:4000/videos/sample2.mp4"
-///           volume="volume" />
+/// defmodule MyApp.VideoPlayerLive do
+///   use Phoenix.LiveView
+///   use LiveViewNative.LiveView
+/// 
+///   native_binding :is_muted, Atom, false
+///   native_binding :time_control_status, String, ""
+///   native_binding :playback_time, Float, 5.0
+///   native_binding :playback_time_update_interval, Float, 0.05
+/// 
+///   @impl true
+///   def render(%{platform_id: :swiftui} = assigns) do
+///     ~SWIFTUI"""
+///     <VStack id="webview-example">
+///       <VStack>
+///         <%= @playback_time %>
 ///       </VStack>
-///       """
-///     end
+///       <VideoPlayer
+///         autoplay
+///         is-muted="is_muted"
+///         playback-time="playback_time"
+///         playback-time-update-interval="playback_time_update_interval"
+///         on-play="handle_play"
+///         on-pause="handle_pause"
+///         time-control-status="time_control_status"
+///         url="http://192.168.1.143:4000/videos/sample2.mp4"
+///         volume="volume" />
+///     </VStack>
+///     """
 ///   end
+/// end
 /// ```
 ///
 /// ## Attributes
