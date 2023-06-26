@@ -145,7 +145,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
             .onReceive(observer.player.publisher(for: \.isMuted)) { value in isMuted = value }
             .onReceive(observer.player.publisher(for: \.timeControlStatus)) { value in syncTimeControlStatus(status: value) }
             /// This is a workaround for SwiftUI not supporting `onReceive` for `AVPlayer`'s `currentTime` property.
-            .onReceive(observer.assigns.$playbackTime.throttle(for: AVKitHelpers.floatToStride(float: playbackTimeUpdateInterval), scheduler: RunLoop.current, latest: true)) { value in playbackTime = value }
+            .onReceive(observer.assigns.$playbackTime.throttle(for: .init(playbackTimeUpdateInterval), scheduler: RunLoop.current, latest: true)) { value in playbackTime = value }
     }
 
     func performPlay(params: Dictionary<String, Any>) {
@@ -159,9 +159,9 @@ struct VideoPlayerView<R: RootRegistry>: View {
     func performSeek(params: Dictionary<String, Any>) {
         guard let value = params["playback_time"] as? Float64 else { return }
         
-        let to = AVKitHelpers.floatToCMTime(float: value)
-        let toleranceBefore = AVKitHelpers.floatToCMTime(float: 0.0)
-        let toleranceAfter = AVKitHelpers.floatToCMTime(float: 0.0)
+        let to = CMTimeMakeWithSeconds(value, preferredTimescale: 1)
+        let toleranceBefore = CMTimeMakeWithSeconds(0.0, preferredTimescale: 1)
+        let toleranceAfter = CMTimeMakeWithSeconds(0.0, preferredTimescale: 1)
 
         observer.player.seek(to: to, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
 
