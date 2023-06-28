@@ -85,13 +85,13 @@ struct VideoPlayerView<R: RootRegistry>: View {
     #if swift(>=5.8)
     @_documentation(visibility: public)
     #endif
-    @LiveBinding(attribute: "playback-time") private var playbackTime: Float64
+    @LiveBinding(attribute: "playback-time") private var playbackTime: Double
 
     /// The interval at which the playback time is updated.
     #if swift(>=5.8)
     @_documentation(visibility: public)
     #endif
-    @LiveBinding(attribute: "playback-time-update-interval") private var playbackTimeUpdateInterval: Float64
+    @LiveBinding(attribute: "playback-time-update-interval") private var playbackTimeUpdateInterval: Double
 
     /// The current time control status of the video player (playing, paused, etc.).
     #if swift(>=5.8)
@@ -153,7 +153,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
     }
 
     func performSeek(params: Dictionary<String, Any>) {
-        guard let value = params["playback_time"] as? Float64 else { return }
+        guard let value = params["playback_time"] as? Double else { return }
         
         let to = CMTimeMakeWithSeconds(value, preferredTimescale: 1)
         let toleranceBefore = CMTimeMakeWithSeconds(0.0, preferredTimescale: 1)
@@ -198,7 +198,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
 @_documentation(visibility: public)
 #endif
 class VideoPlayerObserver<R: RootRegistry>: ObservableObject {
-    @Published var playbackTime: Float64 = 0.0
+    @Published var playbackTime: Double = 0.0
 
     var player: AVPlayer
     var interval: CMTime
