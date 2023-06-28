@@ -87,12 +87,6 @@ struct VideoPlayerView<R: RootRegistry>: View {
     #endif
     @LiveBinding(attribute: "playback-time") private var playbackTime: Double
 
-    /// The interval at which the playback time is updated.
-    #if swift(>=5.8)
-    @_documentation(visibility: public)
-    #endif
-    @LiveBinding(attribute: "playback-time-update-interval") private var playbackTimeUpdateInterval: Double
-
     /// The current time control status of the video player (playing, paused, etc.).
     #if swift(>=5.8)
     @_documentation(visibility: public)
@@ -104,6 +98,12 @@ struct VideoPlayerView<R: RootRegistry>: View {
     @_documentation(visibility: public)
     #endif
     @Attribute("autoplay") private var autoplay: Bool
+
+    /// The interval at which the playback time is updated.
+    #if swift(>=5.8)
+    @_documentation(visibility: public)
+    #endif
+    @Attribute("playback-time-update-interval") private var playbackTimeUpdateInterval: Double
 
     /// The URL of the video to play.
     #if swift(>=5.8)
@@ -120,7 +120,8 @@ struct VideoPlayerView<R: RootRegistry>: View {
     @StateObject private var observer: VideoPlayerObserver<R>
 
     init(element: ElementNode) {
-        let interval = CMTime(seconds: 0.01, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        let seconds = element.attributeValue(for: "playback-time-update-interval").flatMap(Double.init(_:))
+        let interval = CMTime(seconds: seconds!, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
         _observer = StateObject(wrappedValue: VideoPlayerObserver(interval: interval))
     }
@@ -140,7 +141,6 @@ struct VideoPlayerView<R: RootRegistry>: View {
             .onReceive(context.coordinator.receiveEvent("seek"), perform: performSeek)
             .onReceive(observer.player.publisher(for: \.isMuted)) { value in isMuted = value }
             .onReceive(observer.player.publisher(for: \.timeControlStatus)) { value in syncTimeControlStatus(status: value) }
-            /// This is a workaround for SwiftUI not supporting `onReceive` for `AVPlayer`'s `currentTime` property.
             .onReceive(observer.$playbackTime.throttle(for: .init(playbackTimeUpdateInterval), scheduler: RunLoop.current, latest: true)) { value in playbackTime = value }
     }
 
