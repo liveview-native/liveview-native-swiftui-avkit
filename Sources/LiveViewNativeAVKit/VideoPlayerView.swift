@@ -136,6 +136,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
                     self.observer.player.play()
                 }
             }
+            .onChange(of: isMuted) { value in observer.player.isMuted = value }
             .onReceive(context.coordinator.receiveEvent("pause"), perform: performPause)
             .onReceive(context.coordinator.receiveEvent("play"), perform: performPlay)
             .onReceive(context.coordinator.receiveEvent("seek"), perform: performSeek)
