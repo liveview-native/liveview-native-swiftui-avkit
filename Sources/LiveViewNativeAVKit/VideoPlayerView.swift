@@ -91,7 +91,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
     #if swift(>=5.8)
     @_documentation(visibility: public)
     #endif
-    @LiveBinding(attribute: "time-control-status") private var timeControlStatus: String
+    @LiveBinding(attribute: "time-control-status") private var timeControlStatus: TimeControlStatus = .unknown
 
     /// If true, the video will play when the view appears.
     #if swift(>=5.8)
@@ -139,7 +139,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
     }
     
     func initPlayer() {
-        timeControlStatus = "paused"
+        timeControlStatus = .paused
         observer.player.replaceCurrentItem(with: AVPlayerItem(url: url))
 
         if self.autoplay {
@@ -181,26 +181,33 @@ struct VideoPlayerView<R: RootRegistry>: View {
         switch (status) {
         case .paused:
             /// Call `pauseEvent`` if the time control status has changed to paused from another state.
-            if timeControlStatus != "" && timeControlStatus != "paused" {
+            if timeControlStatus != .paused {
                 pause(value: ["playback_time": playbackTime])
             }
             syncPlaybackTime()
-            timeControlStatus = "paused"
+            timeControlStatus = .paused
 
         case .playing:
             /// Call `playEvent` if the time control status has changed to paused from another state.
-            if timeControlStatus != "" && timeControlStatus != "playing" {
+            if timeControlStatus != .playing {
                 play(value: ["playback_time": playbackTime])
             }
             syncPlaybackTime()
-            timeControlStatus = "playing"
+            timeControlStatus = .playing
 
         case .waitingToPlayAtSpecifiedRate:
-            timeControlStatus = "waiting_to_play_at_specified_rate"
+            timeControlStatus = .waitingToPlayAtSpecifiedRate
 
         @unknown default:
-            timeControlStatus = "unknown"
+            timeControlStatus = .unknown
         }
+    }
+
+    enum TimeControlStatus: String, Codable {
+        case playing
+        case paused
+        case waitingToPlayAtSpecifiedRate
+        case unknown
     }
 }
 
