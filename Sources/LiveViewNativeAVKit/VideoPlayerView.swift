@@ -128,14 +128,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
 
     var body: some View {
         VideoPlayer(player: self.observer.player)
-            .onAppear {
-                timeControlStatus = "paused"
-                observer.player.replaceCurrentItem(with: AVPlayerItem(url: url))
-
-                if self.autoplay {
-                    self.observer.player.play()
-                }
-            }
+            .task { initPlayer() }
             .onChange(of: isMuted) { value in observer.player.isMuted = value }
             .onReceive(context.coordinator.receiveEvent("pause"), perform: performPause)
             .onReceive(context.coordinator.receiveEvent("play"), perform: performPlay)
@@ -143,6 +136,15 @@ struct VideoPlayerView<R: RootRegistry>: View {
             .onReceive(observer.player.publisher(for: \.isMuted)) { value in isMuted = value }
             .onReceive(observer.player.publisher(for: \.timeControlStatus)) { value in syncTimeControlStatus(status: value) }
             .onReceive(observer.$playbackTime.throttle(for: .init(playbackTimeUpdateInterval), scheduler: RunLoop.current, latest: true)) { value in playbackTime = value }
+    }
+    
+    func initPlayer() {
+        timeControlStatus = "paused"
+        observer.player.replaceCurrentItem(with: AVPlayerItem(url: url))
+
+        if self.autoplay {
+            self.observer.player.play()
+        }
     }
 
     func performPlay(params: Dictionary<String, Any>) {
@@ -165,6 +167,15 @@ struct VideoPlayerView<R: RootRegistry>: View {
         // Always update playback time when seeking.
         playbackTime = CMTimeGetSeconds(observer.player.currentTime())
     }
+    
+    func syncPlaybackTime() {
+        let time = observer.player.currentTime()
+        
+        guard time != .invalid && time != .indefinite
+        else { return }
+
+        playbackTime = CMTimeGetSeconds(time)
+    }
 
     func syncTimeControlStatus(status: AVPlayer.TimeControlStatus) {
         switch (status) {
@@ -173,7 +184,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
             if timeControlStatus != "" && timeControlStatus != "paused" {
                 pause(value: ["playback_time": playbackTime])
             }
-            playbackTime = CMTimeGetSeconds(observer.player.currentTime())
+            syncPlaybackTime()
             timeControlStatus = "paused"
 
         case .playing:
@@ -181,7 +192,7 @@ struct VideoPlayerView<R: RootRegistry>: View {
             if timeControlStatus != "" && timeControlStatus != "playing" {
                 play(value: ["playback_time": playbackTime])
             }
-            playbackTime = CMTimeGetSeconds(observer.player.currentTime())
+            syncPlaybackTime()
             timeControlStatus = "playing"
 
         case .waitingToPlayAtSpecifiedRate:
