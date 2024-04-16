@@ -27,7 +27,7 @@ struct ContentView: View {
 }
 ```
 
-To render a video player within a SwiftUI HEEx template, use the `VideoPlayer` element with a `url`:
+Now you can use the `VideoPlayer` element in your template.
 
 <table>
 
