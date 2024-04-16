@@ -10,7 +10,7 @@
 
 ## Usage
 
-Import `LiveViewNativeAVKit`, and add the `AVKitRegistry` to the list of addons on your `LiveView`:
+Import `LiveViewNativeAVKit` and add the `AVKitRegistry` to the list of addons on your `LiveView`:
 
 ```swift
 import SwiftUI
@@ -20,8 +20,8 @@ import LiveViewNativeAVKit
 struct ContentView: View {
     var body: some View {
         #LiveView(
-          .localhost,
-          addons: [AVKitRegistry<_>.self]
+            .localhost,
+            addons: [AVKitRegistry<_>.self]
         )
     }
 }
