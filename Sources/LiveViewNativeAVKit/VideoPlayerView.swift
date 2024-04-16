@@ -14,14 +14,14 @@ import CoreMedia
 
 /// A native video player view. It can be rendered in a LiveViewNative app using the `VideoPlayer` element.
 ///
-/// - Note: You must include a `phx-throttle` or `phx-debounce` attribute to receive updates to the `playback-time`.
+/// - Note: You must include a `phx-throttle` or `phx-debounce` attribute to receive updates to the `playbackTime`.
 ///
 /// ```elixir
 /// <VideoPlayer
 ///   autoplay
-///   is-muted
-///   url="http://192.168.1.143:4000/videos/sample2.mp4"
-///   playback-time={30}
+///   isMuted
+///   url="videos/sample.mov"
+///   playbackTime={30}
 ///   phx-debounce={1000}
 ///   phx-change="player-changed"
 /// />
@@ -33,43 +33,54 @@ import CoreMedia
 /// * ``isMuted``
 /// * ``playbackTime``
 /// * ``timeControlStatus``
-struct VideoPlayerView<R: RootRegistry>: View {
+@_documentation(visibility: public)
+@LiveElement
+struct VideoPlayer<Root: RootRegistry>: View {
+    @LiveElementIgnored
     @StateObject private var coordinator = VideoPlayerCoordinator()
     
     /// The URL of the video to play.
-    @Attribute("url", transform: {
-        guard let value = $0?.value else { throw AttributeDecodingError.missingAttribute(Self.self) }
-
-        return URL(string: value)!
-    }) private var url: URL
+    @_documentation(visibility: public)
+    private var url: String?
     
     /// If true, the video will play when the view appears.
-    @Attribute("autoplay") private var autoplay: Bool
+    @_documentation(visibility: public)
+    private var autoplay: Bool = false
     
-    @Attribute("phx-debounce") private var debounce: Double?
-    @Attribute("phx-throttle") private var throttle: Double?
+    @_documentation(visibility: public)
+    @LiveAttribute(.init(name: "phx-debounce"))
+    private var debounce: Double?
+    @_documentation(visibility: public)
+    @LiveAttribute(.init(name: "phx-throttle"))
+    private var throttle: Double?
 
     /// A boolean indicating whether the video player is muted.
-    @ChangeTracked(attribute: "is-muted") private var isMuted: Bool = false
+    @_documentation(visibility: public)
+    @ChangeTracked(attribute: "isMuted")
+    private var isMuted: Bool = false
 
     /// The current playback time of the video player in seconds.
-    @Attribute("playback-time") private var playbackTime: Double?
+    @_documentation(visibility: public)
+    private var playbackTime: Double?
     /// The name of the change event. Used by ``playbackTime`` to bypass the default debounce/throttle behavior.
-    @Attribute("phx-change") private var changeEventName: String
+    @_documentation(visibility: public)
+    @LiveAttribute(.init(name: "phx-change"))
+    private var changeEventName: String?
 
     /// The current time control status of the video player (playing, paused, etc.).
-    @ChangeTracked(attribute: "time-control-status") private var timeControlStatus: TimeControlStatus = .paused
-
-    @LiveContext<R> private var context
-    @ObservedElement private var element: ElementNode
+    @_documentation(visibility: public)
+    @ChangeTracked(attribute: "timeControlStatus")
+    private var timeControlStatus: TimeControlStatus = .paused
     
     var body: some View {
-        VideoPlayer(player: coordinator.player) {
-            context.buildChildren(of: element)
+        AVKit.VideoPlayer(player: coordinator.player) {
+            $liveElement.children()
         }
         // remote changes
         .onChange(of: url) { newValue in
-            coordinator.setPlayerItem(newValue)
+            guard let url = newValue.flatMap({ URL(string: $0, relativeTo: $liveElement.context.url) })
+            else { return }
+            coordinator.setPlayerItem(url)
         }
         .onChange(of: isMuted) {
             coordinator.player.isMuted = $0
@@ -96,14 +107,16 @@ struct VideoPlayerView<R: RootRegistry>: View {
             isMuted = $0
         }
         .onReceive(coordinator.playbackTime) { playbackTime in
-            guard let playbackTime else { return }
+            guard let playbackTime,
+                  let changeEventName
+            else { return }
             Task {
                 // send a change event without automatic debouncing, the observer handles the debounce instead.
-                try await context.coordinator.pushEvent(
+                try await $liveElement.context.coordinator.pushEvent(
                     type: "click",
                     event: changeEventName,
                     value: ["playback-time": playbackTime],
-                    target: element.attributeValue(for: "phx-target").flatMap(Int.init)
+                    target: $liveElement.element.attributeValue(for: "phx-target").flatMap(Int.init)
                 )
             }
         }
@@ -112,12 +125,15 @@ struct VideoPlayerView<R: RootRegistry>: View {
         }
         // setup
         .task {
+            guard let url = url.flatMap({ URL(string: $0, relativeTo: $liveElement.context.url) })
+            else { return }
             coordinator.setPlayerItem(url)
         }
         .onChange(of: debounce ?? throttle) {
             coordinator.setupTimeObserver($0)
         }
         .onChange(of: coordinator.player.currentItem) { item in
+            coordinator.player.isMuted = isMuted
             coordinator.player.seek(to: CMTimeMakeWithSeconds(playbackTime ?? 0, preferredTimescale: 1))
             coordinator.setupTimeObserver(debounce ?? throttle)
             if autoplay {

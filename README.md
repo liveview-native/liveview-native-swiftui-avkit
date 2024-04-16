@@ -1,67 +1,63 @@
-# liveview-native-avkit
+# AVKit for LiveView Native SwiftUI
 
-## About
+`liveview-native-swiftui-avkit` is an add-on library for [LiveView Native](https://github.com/liveview-native/live_view_native). It adds [AVKit](https://developer.apple.com/documentation/avkit) support for video playback and other audiovisual capabilities.
 
-`liveview-native-avkit` is an add-on library for [LiveView Native](https://github.com/liveview-native/live_view_native). It adds [AVKit](https://developer.apple.com/documentation/avkit) support for video playback and other audiovisual capabilities.
+## Installation
+
+1. In Xcode, select *File → Add Packages...*
+2. Enter the package URL `https://github.com/liveview-native/liveview-native-swiftui-avkit`
+3. Select *Add Package*
 
 ## Usage
 
-Add this library as a package to your LiveView Native application's Xcode project using its repo URL. Then, create an `AggregateRegistry` to include the provided `AVKitRegistry` within your native app builds:
+Import `LiveViewNativeAVKit` and add the `AVKitRegistry` to the list of addons on your `LiveView`:
 
-```diff
+```swift
 import SwiftUI
 import LiveViewNative
-+ import LiveViewNativeAVKit
-+ 
-+ struct MyRegistry: CustomRegistry {
-+     typealias Root = AppRegistries
-+ }
-+ 
-+ struct AppRegistries: AggregateRegistry {
-+     typealias Registries = Registry2<
-+         MyRegistry,
-+         AVKitRegistry<Self>
-+     >
-+ }
+import LiveViewNativeAVKit
 
-@MainActor
 struct ContentView: View {
--     @StateObject private var session: LiveSessionCoordinator<EmptyRegistry> = {
-+     @StateObject private var session: LiveSessionCoordinator<AppRegistries> = {
-        var config = LiveSessionConfiguration()
-        config.navigationMode = .enabled
-        
-        return LiveSessionCoordinator(URL(string: "http://localhost:4000/")!, config: config)
-    }()
-
     var body: some View {
-        LiveView(session: session)
+        #LiveView(
+            .localhost,
+            addons: [AVKitRegistry<_>.self]
+        )
     }
 }
 ```
 
-To render a video player within a SwiftUI HEEx template, use the `VideoPlayer` element with a `url`:
+Now you can use the `VideoPlayer` element in your template.
 
-```elixir
-defmodule MyAppWeb.AVKitLive do
-  use Phoenix.LiveView
-  use LiveViewNative.LiveView
+<table>
 
-  @impl true
-  def render(%{platform_id: :swiftui} = assigns) do
-    ~Z"""
-    <VStack>
-      <VideoPlayer url="http://127.0.0.1:4000/videos/sample.mp4" />
-    </VStack>
-    """swiftui
-  end
-end
+<tr>
+<td>
+
+```html
+<VideoPlayer
+  url="videos/sample.mov"
+  autoplay
+  isMuted
+  playbackTime={28}
+  phx-debounce={1000}
+  phx-change="player-changed"
+/>
 ```
+</td>
 
-![LiveView Native AVKit screenshot](./docs/example.png)
+<td>
+<img src="./docs/example.png" alt="LiveView Native AVKit screenshot" width="300" />
+</td>
+
+</tr>
+
+</table>
 
 ## Learn more
 
-  * Official website: https://native.live
-  * Docs: https://hexdocs.pm/live_view_native_platform
-  * Source: https://github.com/liveviewnative/live_view_native_platform
+You can view documentation on the elements and attributes in this addon from Xcode:
+
+1. In Xcode, select *Product → Build Documentation* in the menu bar
+2. Select *Window → Developer Documentation* (Xcode should open this for you after the documentation is built)
+3. Select *LiveViewNativeAVKit* in the sidebar
