@@ -47,7 +47,7 @@ To render a video player within a SwiftUI HEEx template, use the `VideoPlayer` e
 </td>
 
 <td>
-<img src="./docs/example.png" alt="LiveView Native AVKit screenshot" style="max-width: 300;" />
+<img src="./docs/example.png" alt="LiveView Native AVKit screenshot" width="300" />
 </td>
 
 </tr>
