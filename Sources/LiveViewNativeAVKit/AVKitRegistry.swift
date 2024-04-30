@@ -10,11 +10,10 @@ import LiveViewNativeStylesheet
 import SwiftUI
 
 public extension Addons {
+    /// An alias for the ``AvKit`` addon, with proper capitalization when using it as a type.
     public typealias AVKit = AvKit
     
     /// The main LiveView Native registry for the LiveViewNativeAVKit add-on library.
-    ///
-    /// Use this view in your LiveView view tree using the ``CustomRegistry`` (see <doc:AddCustomElement>).
     #if swift(>=5.8)
     @_documentation(visibility: public)
     #endif
